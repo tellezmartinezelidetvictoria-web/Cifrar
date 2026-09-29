@@ -1,98 +1,173 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
-
+import React,{useState} from 'react';
+import { StyleSheet, Text, View, SafeAreaView, Button,TextInput, } from 'react-native';
+import * as Crypto from 'expo-crypto'; 
 export default function HomeScreen() {
+  const [cifrar, Setcifrar] = useState<string>('');
+
+  const handlePress = async  () => {
+    if(!cifrar) return ;
+    const inicio = performance.now();
+    const hash = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      cifrar
+    );
+    const fin = performance.now();
+    const tnHallado = (fin - inicio).toFixed(4);
+
+    setHashResult(hash);
+    setTiempoEjecucion(`${tnHallado} ms`);
+    setBigO('O(n)');
+
+  };
+
+  const [hashResult, setHashResult] = useState<string>('-');
+  const [tiempoEjecucion, setTiempoEjecucion] = useState<string>('-');
+  const [bigO, setBigO] = useState<string>('-')
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>Aplicacion Cifrado</Text>
+        <Text style={styles.subtitle}>Elabore una aplicación Movil donde implemente Hashing y calcule el TNo y BigO</Text>
+        <TextInput
+        style={styles.input}
+          placeholder="Texto a cifrar"
+          placeholderTextColor="#999"
+          value={cifrar}
+          onChangeText={(texto) => Setcifrar(texto)}
+          autoCapitalize="none" 
+          autoCorrect={false}
+        />
+        <Text style={styles.resultado}>Texto Escrito: {cifrar}</Text>
+        <Button 
+          title="Cifrar" 
+          onPress={handlePress} 
+          color="#007AFF" 
+        />
+      </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <View style={styles.cardContainer}>
+        <Text style={styles.cardTitle}>Resultados del Análisis</Text>
+        
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>SHA-256 Hash:</Text>
+          <Text style={styles.hashText} numberOfLines={2}>
+            {hashResult}
+          </Text>
+        </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Tiempo de Ejecución (T(n)):</Text>
+          <Text style={styles.infoValue}>{tiempoEjecucion}</Text>
+        </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Complejidad Algorítmica (Big O):</Text>
+          <Text style={[styles.infoValue, styles.bigOText]}>{bigO}</Text>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: '#f5f5f5', 
   },
-  safeArea: {
+  content: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    alignItems: 'center',
+    padding: 20,
   },
   title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 20,
     textAlign: 'center',
   },
-  code: {
-    textTransform: 'uppercase',
+  formContainer: {
+    padding: 20,          
+    marginTop: 40,        
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,      
+    color: '#333',
+  },
+  input: {
+    height: 50,
+    width : "80%",
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12, 
+    marginVertical : 20,
+    fontSize: 16,
+    color: '#000',
+    backgroundColor: '#f9f9f9',
+  },
+  resultado: {
+    marginVertical: 15,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  cardContainer: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 25,
+    marginTop: 20,
+    marginBottom: 50,          
+    padding: 20,                
+    borderRadius: 12,           
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,               
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#212529',
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f5',
+    paddingBottom: 8,
+  },
+  infoRow: {
+    marginBottom: 12,
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: '#6c757d',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 15,
+    color: '#212529',
+    fontWeight: '500',
+  },
+  hashText: {
+    fontSize: 13,
+    fontFamily: 'Platform-Specific-Monospace', 
+    color: '#495057',
+    backgroundColor: '#f1f3f5',
+    padding: 6,
+    borderRadius: 4,
+  },
+  bigOText: {
+    color: '#dc3545', 
+    fontWeight: 'bold',
   },
 });
